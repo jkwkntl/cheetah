@@ -27,13 +27,15 @@ jobs:
           # Restart service RDP
           Restart-Service -Name TermService -Force
 
-      - name: Create RDP User with Custom Password
+      - name: Create RDP User with Custom Complex Password
         run: |
           $username = "Mafy"
-          $password = "Mafy1234!"   # <-- ganti password custom kamu
+
+          # Buat password custom yang pasti lolos password policy
+          $password = "Mafy" + (Get-Random -Minimum 1000 -Maximum 9999) + "!@#"
           $securePass = ConvertTo-SecureString $password -AsPlainText -Force
 
-          # Hapus dulu user lama kalau ada, biar selalu clean
+          # Hapus dulu user lama kalau ada, supaya selalu fresh
           if (Get-LocalUser -Name $username -ErrorAction SilentlyContinue) {
               Remove-LocalUser -Name $username -Force
           }
@@ -43,6 +45,7 @@ jobs:
           Add-LocalGroupMember -Group "Administrators" -Member $username
           Add-LocalGroupMember -Group "Remote Desktop Users" -Member $username
 
+          # Simpan creds ke env
           echo "RDP_CREDS=User: $username | Password: $password" >> $env:GITHUB_ENV
 
       - name: Install Tailscale
